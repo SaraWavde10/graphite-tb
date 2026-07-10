@@ -5,8 +5,9 @@
 #include <cmath>
 #include <Eigen/Dense>
 
-const double gamma0 = 3.0;
-const double a = 1.0;
+const double gamma0 = 3.0;    // in-plane hopping (eV)
+const double gamma1 = 0.39;   // interlayer hopping (eV)
+const double a = 1.0;         // lattice constant
 
 std::complex<double> f(double kx, double ky) {
     using namespace std::complex_literals;
@@ -14,11 +15,24 @@ std::complex<double> f(double kx, double ky) {
          + 2.0 * std::exp(-1i * kx * a / 2.0) * std::cos(ky * a * std::sqrt(3.0) / 2.0);
 }
 
-Eigen::MatrixXcd graphene_H(double kx, double ky) {
-    Eigen::MatrixXcd H(2, 2);
+// AB-stacked bilayer: 4x4 Hamiltonian
+// Basis: (A1, B1, A2, B2)
+Eigen::MatrixXcd bilayer_H(double kx, double ky) {
+    Eigen::MatrixXcd H = Eigen::MatrixXcd::Zero(4, 4);
     std::complex<double> fk = gamma0 * f(kx, ky);
-    H << 0,               fk,
-         std::conj(fk),   0;
+
+    // Layer 1 (intralayer)
+    H(0,1) = fk;
+    H(1,0) = std::conj(fk);
+
+    // Layer 2 (intralayer)
+    H(2,3) = fk;
+    H(3,2) = std::conj(fk);
+
+    // Interlayer: B1 <-> A2 (AB stacking)
+    H(1,2) = gamma1;
+    H(2,1) = gamma1;
+
     return H;
 }
 
@@ -47,9 +61,12 @@ int main() {
 
     for (int i = 0; i < (int)path.size(); i++) {
         auto [kx, ky] = path[i];
-        Eigen::MatrixXcd H = graphene_H(kx, ky);
+        Eigen::MatrixXcd H = bilayer_H(kx, ky);
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> solver(H);
-        out << i << " " << solver.eigenvalues()(0) << " " << solver.eigenvalues()(1) << "\n";
+        out << i;
+        for (int b = 0; b < 4; b++)
+            out << " " << solver.eigenvalues()(b);
+        out << "\n";
     }
 
     std::cout << "Done. Bands written to bands.dat\n";
