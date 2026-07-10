@@ -5,7 +5,7 @@ Build a C++/Python tight-binding solver for graphene and graphite
 
 Learning objectives: 
 - C++ (Eigen, CMake, pybind11, templates)
-- Integrating C++ with python
+- Integrating C++ with Python
 - Condensed matter physics of graphite from a graphene foundation
 
 ---
@@ -13,11 +13,11 @@ Learning objectives:
 ## Project Scope
 
 ### Step 1 — C++ Foundation
-- [ ] CMake + Eigen project structure
+- [x] CMake + Eigen project structure
 - [ ] Generic `TightBindingModel` class (Hamiltonian input, diagonalisation over k-path)
-- [ ] Reproduce graphene band structure (sanity check)
+- [x] Reproduce graphene band structure (sanity check)
 - [ ] pybind11 bindings — expose `get_bands(k_points)` to Python
-- [ ] Plot band structure from Python (matplotlib)
+- [x] Plot band structure from Python (matplotlib)
 
 ### Step 2 — Graphite Physics
 - [ ] Bilayer graphene: AB vs AA stacking, verify band splitting
@@ -70,8 +70,22 @@ Learning objectives:
   └── build/
   ```
 - Written first `CMakeLists.txt` linking Eigen
-- Written sanity-check `main.cpp` (2x2 Hermitian diagonalisation)
-- **Next:** build and run the sanity check, then implement graphene Hamiltonian
+- Written sanity-check `main.cpp` (2x2 Hermitian diagonalisation) — eigenvalues ±1 confirmed
+
+### Session 2: Graphene band structure
+- Installed `mingw-w64-x86_64-gcc` (g++ was missing from PATH despite MSYS2 being present)
+- Installed `mingw-w64-x86_64-python` and `mingw-w64-x86_64-python-matplotlib`
+- Implemented graphene tight-binding Hamiltonian in `src/main.cpp`:
+  - 2x2 k-dependent H(k) with hopping parameter γ₀ = 3 eV
+  - Structure factor f(k) for honeycomb lattice
+  - k-path: Γ → M → K → Γ (200 points per segment)
+  - Outputs eigenvalues to `build/bands.dat`
+- Wrote `python/plot.py` to read `bands.dat` and plot band structure
+- Successfully reproduced graphene band structure:
+  - Dirac point (linear crossing at zero energy) visible at K
+  - Bandwidth ±3 eV = γ₀ × 2 ✓
+  - Van Hove singularity at M ✓
+- **Next:** extend to bilayer graphene (AB stacking), 4x4 Hamiltonian, interlayer hopping γ₁ = 0.39 eV
 
 ---
 
